@@ -67,13 +67,14 @@ resource "aws_lb_listener_rule" "Asg" {
 output "alb_dns_name" {
 
   value = aws_lb.example.dns_name
-  discription = "The domain name of Load balancer "
+  description = "The domain name of Load balancer "
 }
 
 resource "aws_lb" "example" {
   name               = "tf-asg-example"
   load_balancer_type = "application"
   subnets            = data.aws_subnets.default.ids
+  security_groups   = [aws_security_group.alb.id]
 
 }
 
@@ -103,7 +104,7 @@ resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.example.arn
   port              = 80
   protocol          = "HTTP"
-  security_groups   = [aws_security_group.alb.id]
+  
   default_action {
     type = "fixed-response"
     fixed_response {
@@ -134,7 +135,7 @@ resource "aws_security_group" "alb" {
 
 resource "aws_launch_configuration" "example" {
   image_id        = "ami-03f65b8614a860c29"
-  instance_type   = "t2.micro"
+  instance_type   = "t3.micro"
   security_groups = [aws_security_group.instance.id]
 
   user_data                   = <<-EOF
@@ -142,7 +143,7 @@ resource "aws_launch_configuration" "example" {
               echo "Hello, World" > index.html
               nohup busybox httpd -f -p ${var.server_port} &
               EOF
-  user_data_replace_on_change = true
+  #user_data_replace_on_change = true
   lifecycle {
     create_before_destroy = true
   }
